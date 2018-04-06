@@ -6,32 +6,38 @@ class ManageCallerController < ApplicationController
 
   def show
     # begin
-    i = 0
-    while i< 10
-      endpoint = get_online_endpoint @client
-      byebug
-      channels = get_channel endpoint
+    i = 1
+    tmp = nil
+    while i < 50
+      # endpoint = get_online_endpoint @client
       i = i + 1
-      if channels.length > 0
-        begin
+      # begin
+        channels = get_channel_direct @client
+        if channels.length > 0
           for channel in channels
             detail = @client.channels_get channel
-            if detail["state"] == "Up"
+            if detail["state"] == "Ring"
+              tmp = detail
               incomming_call_api detail
-            elsif detail["state"] == "Down"
-              hangup_call_api detail
-            else
+            elsif detail["state"] == "Up"
+              tmp = detail
               anwser_call_api detail
+              # elsif detaill.length == 0
+            elsif tmp.length != 0 && detail.nil?
+              byebug
+              # else
             end
           end
-        rescue
-        ensure
-          
+        elsif !tmp.nil?
+          hangup_call_api tmp
         end
-      end
-      sleep 1      
-      
+      # rescue
+      # end
+      # elsif tmp.length > 0
+      #   hangup_call_api tmp
     end
+    sleep 1
+
   end
 
   def get_online_endpoint client
@@ -51,6 +57,10 @@ class ManageCallerController < ApplicationController
       end
     end
     channels
+  end
+
+  def get_channel_direct client
+    client.channels_list
   end
 
   private
@@ -96,6 +106,7 @@ class ManageCallerController < ApplicationController
   end
 
   def hangup_call_api call_details
+    # byebug
     uri = URI.parse("http://cskh.ippay.vn:8002/api/v1/sipgate/in")
     http = Net::HTTP.new(uri.host, uri.port)
     header = {"Content-Type": "application/json"}
