@@ -1,0 +1,3 @@
+class CallLogger < ApplicationRecord
+
+end
