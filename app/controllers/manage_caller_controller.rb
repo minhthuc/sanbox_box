@@ -7,29 +7,32 @@ class ManageCallerController < ApplicationController
   def show
     # begin
     i = 0
-    while i< 10
+    tmp = nil
+    while i< 50
       endpoint = get_online_endpoint @client
-      byebug
+      # byebug
       channels = get_channel endpoint
       i = i + 1
       if channels.length > 0
         begin
           for channel in channels
             detail = @client.channels_get channel
-            if detail["state"] == "Up"
+            tmp = detail
+            if detail["state"] == "Ring"
               incomming_call_api detail
-            elsif detail["state"] == "Down"
-              hangup_call_api detail
-            else
+            elsif detail["state"] == "Up"
               anwser_call_api detail
+            elsif detail.nil?
+              hangup_call_api tmp
+              byebug
             end
           end
         rescue
+          byebug
         ensure
-          
         end
       end
-      sleep 1      
+      sleep 1
       
     end
   end
